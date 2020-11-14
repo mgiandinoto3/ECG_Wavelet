@@ -14,6 +14,7 @@ import os
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvas
+from PIL import Image
 
 def load_raw_data(df, sampling_rate, path):
     if sampling_rate == 100:
@@ -54,6 +55,7 @@ test_fold = 10
 
 X_train = X[np.where(Y.strat_fold != test_fold)]
 X_small=X[0]
+X_small=X_small.flatten()
 y_train = Y[(Y.strat_fold != test_fold)].diagnostic_superclass
 y_small=y_train[0:2]
 X_norm=[]
@@ -64,24 +66,29 @@ for index, value in y_small.items():
     if value == ['NORM']or value==['MI']:
         x=X[index-1]
         x=x[0:5000]
-        x_flat=x.flatten()
+        x=x.flatten()
         #time=np.arange(0,len(x))
         #time=time/sampling_rate
         start=0
         stop=500
         for i in range(1,10):
-            tempx=x_flat[start:stop]
-            fig=plt.figure(figsize=(12,8))
+            fig, ax = plt.subplots()
+            tempx=x[start:stop]
+            diff=(max(tempx)+min(tempx))/2
+            tempx=tempx+diff
             t=np.arange(0,len(tempx))
+            ax.plot(t, tempx)
             plt.style.use('grayscale')
-            ax = plt.gca()
-            plt.plot(tempx)
             ax.axes.xaxis.set_visible(False)
             ax.axes.yaxis.set_visible(False)
             plt.fill_between(t,tempx,0)
-            X_norm.append(np.asarray(fig))
-            Y_norm.append(value)
-            plt.show()
+            fig.canvas.draw()
+            
+            # grab the pixel buffer and dump it into a numpy array
+            a= np.array(fig.canvas.renderer.buffer_rgba())
+            img = Image.fromarray(a, 'RGBA').convert('LA')
+            #X_norm.append(img)
+            #Y_norm.append(value)
             plt.close(fig)
             start=start+500
             stop=stop+500
@@ -112,18 +119,23 @@ for index, value in y_test_small.items():
         start=0
         stop=500
         for i in range(1,10):
-            tempx=x_flat[start:stop]
-            fig=plt.figure(figsize=(12,8))
+            fig, ax = plt.subplots()
+            tempx=x[start:stop]
+            diff=(max(tempx)+min(tempx))/2
+            tempx=tempx+diff
             t=np.arange(0,len(tempx))
+            ax.plot(t, tempx)
             plt.style.use('grayscale')
-            ax = plt.gca()
             ax.axes.xaxis.set_visible(False)
             ax.axes.yaxis.set_visible(False)
-            plt.plot(tempx)
             plt.fill_between(t,tempx,0)
-            X_test_myset.append(np.array(fig))
-            Y_test_myset.append(value)
-           # plt.show()
+            fig.canvas.draw()
+            
+            # grab the pixel buffer and dump it into a numpy array
+            a= np.array(fig.canvas.renderer.buffer_rgba())
+            img = Image.fromarray(a, 'RGBA').convert('LA')
+            #X_test_myset.append(img)
+            #Y_test_myset.append(value)
             plt.close(fig)
             start=start+500
             stop=stop+500
@@ -144,7 +156,4 @@ from tensorflow.keras.layers import MaxPooling2D
 
 #check image shape
 print(X_norm[0].shape)
-
-
-
 
