@@ -32,6 +32,7 @@ ybeat=clean[peaks]
 #function takes in the list of detected rpeaks, list of where each peak occurs in the signal(ybeat)
 #ybeat should just be signal[peaks]
 #fs is sampling frequency
+#method can be either 'fft' or 'periodogram'
 def get_hrv(peaks,ybeat,fs,method):
     #create empty dicts 'wd' and 'measures'. 
     wd={}
